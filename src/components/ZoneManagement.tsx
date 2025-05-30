@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Zone } from '@/types/zone';
-import { Square, Edit, Copy } from 'lucide-react';
+import { Square, Edit, Copy, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ZoneManagementProps {
@@ -49,6 +49,32 @@ const ZoneManagement: React.FC<ZoneManagementProps> = ({
     setEditName('');
   };
 
+  const handleSaveZones = () => {
+    if (zones.length === 0) {
+      toast.error('No zones to save');
+      return;
+    }
+
+    const zonesData = zones.map(zone => ({
+      id: zone.id,
+      name: zone.name,
+      coordinates: zone.points,
+      color: zone.color
+    }));
+
+    const jsonString = JSON.stringify(zonesData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'zones.json';
+    link.click();
+    
+    URL.revokeObjectURL(url);
+    toast.success('Zones saved as JSON file');
+  };
+
   return (
     <Card className="h-fit bg-white shadow-lg">
       <CardHeader className="pb-4">
@@ -65,6 +91,17 @@ const ZoneManagement: React.FC<ZoneManagementProps> = ({
         >
           {isDrawing ? 'Drawing Zone...' : 'Draw New Zone'}
         </Button>
+
+        {zones.length > 0 && (
+          <Button
+            onClick={handleSaveZones}
+            variant="outline"
+            className="w-full border-green-600 text-green-600 hover:bg-green-50"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Save Zones as JSON
+          </Button>
+        )}
 
         {isDrawing && (
           <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">

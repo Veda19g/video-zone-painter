@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
-import { Stage, Layer, Line, Circle, Group } from 'react-konva';
+import { Stage, Layer, Line, Circle, Group, Text } from 'react-konva';
 import { Zone, Point } from '@/types/zone';
 import Konva from 'konva';
 
@@ -49,6 +49,15 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
     }
   };
 
+  const calculateZoneCenter = (points: Point[]): Point => {
+    const sumX = points.reduce((sum, point) => sum + point.x, 0);
+    const sumY = points.reduce((sum, point) => sum + point.y, 0);
+    return {
+      x: sumX / points.length,
+      y: sumY / points.length
+    };
+  };
+
   const renderZone = (zone: Zone) => {
     const isSelected = selectedZoneId === zone.id;
     const opacity = isSelected ? 0.4 : 0.2;
@@ -57,6 +66,7 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
     if (zone.points.length < 3) return null;
 
     const points = zone.points.flatMap(p => [p.x, p.y]);
+    const center = calculateZoneCenter(zone.points);
     
     return (
       <Group key={zone.id}>
@@ -68,6 +78,20 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
           strokeWidth={strokeWidth}
           opacity={opacity}
           onClick={() => onZoneSelect(zone.id)}
+        />
+        <Text
+          x={center.x}
+          y={center.y}
+          text={zone.name}
+          fontSize={14}
+          fontFamily="Arial"
+          fill="#ffffff"
+          stroke="#000000"
+          strokeWidth={1}
+          align="center"
+          verticalAlign="middle"
+          offsetX={zone.name.length * 4}
+          offsetY={7}
         />
         {isSelected && zone.points.map((point, index) => (
           <Circle
