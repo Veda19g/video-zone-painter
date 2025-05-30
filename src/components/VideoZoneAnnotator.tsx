@@ -25,10 +25,12 @@ const VideoZoneAnnotator = () => {
   };
 
   const handleVideoLoad = (width: number, height: number) => {
+    console.log('Video loaded with dimensions:', width, height);
     setVideoDimensions({ width, height });
   };
 
   const startDrawing = () => {
+    console.log('Starting drawing mode');
     setIsDrawing(true);
     setCurrentPoints([]);
     setSelectedZoneId(null);
@@ -38,6 +40,7 @@ const VideoZoneAnnotator = () => {
   const addPoint = (point: Point) => {
     if (!isDrawing) return;
 
+    console.log('Adding point:', point);
     const newPoints = [...currentPoints, point];
     setCurrentPoints(newPoints);
 
@@ -96,17 +99,19 @@ const VideoZoneAnnotator = () => {
                     videoUrl={videoUrl}
                     onVideoLoad={handleVideoLoad}
                   />
-                  <ZoneDrawingCanvas
-                    width={videoDimensions.width}
-                    height={videoDimensions.height}
-                    zones={zones}
-                    selectedZoneId={selectedZoneId}
-                    currentPoints={currentPoints}
-                    isDrawing={isDrawing}
-                    onPointAdd={addPoint}
-                    onZoneSelect={selectZone}
-                    onZoneUpdate={updateZone}
-                  />
+                  {videoDimensions.width > 0 && videoDimensions.height > 0 && (
+                    <ZoneDrawingCanvas
+                      width={videoDimensions.width}
+                      height={videoDimensions.height}
+                      zones={zones}
+                      selectedZoneId={selectedZoneId}
+                      currentPoints={currentPoints}
+                      isDrawing={isDrawing}
+                      onPointAdd={addPoint}
+                      onZoneSelect={selectZone}
+                      onZoneUpdate={updateZone}
+                    />
+                  )}
                 </div>
               )}
             </Card>

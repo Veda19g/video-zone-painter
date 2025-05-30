@@ -35,6 +35,7 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
 
     const pos = e.target.getStage()?.getPointerPosition();
     if (pos) {
+      console.log('Adding point:', pos);
       onPointAdd({ x: pos.x, y: pos.y });
     }
   };
@@ -121,8 +122,12 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="absolute inset-0 pointer-events-auto"
-      style={{ cursor: isDrawing ? 'crosshair' : 'default' }}
+      className="absolute inset-0"
+      style={{ 
+        cursor: isDrawing ? 'crosshair' : 'default',
+        pointerEvents: isDrawing ? 'auto' : 'none',
+        zIndex: 10
+      }}
     >
       <Stage
         ref={stageRef}
