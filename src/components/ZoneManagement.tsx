@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,8 @@ interface ZoneManagementProps {
   onStartDrawing: () => void;
   isDrawing: boolean;
   hasVideo: boolean;
+  videoDimensions: { width: number; height: number };
+  videoElement?: HTMLVideoElement | null;
 }
 
 const ZoneManagement: React.FC<ZoneManagementProps> = ({
@@ -27,6 +28,8 @@ const ZoneManagement: React.FC<ZoneManagementProps> = ({
   onStartDrawing,
   isDrawing,
   hasVideo,
+  videoDimensions,
+  videoElement,
 }) => {
   const [editingZoneId, setEditingZoneId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -49,18 +52,56 @@ const ZoneManagement: React.FC<ZoneManagementProps> = ({
     setEditName('');
   };
 
+  const calculateVideoCoordinates = (canvasPoint: { x: number; y: number }) => {
+    if (!videoElement) {
+      // Fallback to canvas coordinates if video element not available
+      return {
+        x: canvasPoint.x,
+        y: canvasPoint.y
+      };
+    }
+
+    // Get the actual video dimensions
+    const videoWidth = videoElement.videoWidth;
+    const videoHeight = videoElement.videoHeight;
+    
+    // Get the displayed video dimensions (scaled)
+    const displayedWidth = videoDimensions.width;
+    const displayedHeight = videoDimensions.height;
+
+    // Calculate the scaling factors
+    const scaleX = videoWidth / displayedWidth;
+    const scaleY = videoHeight / displayedHeight;
+
+    // Convert canvas coordinates to actual video coordinates
+    return {
+      x: Math.round(canvasPoint.x * scaleX),
+      y: Math.round(canvasPoint.y * scaleY)
+    };
+  };
+
   const handleSaveZones = () => {
     if (zones.length === 0) {
       toast.error('No zones to save');
       return;
     }
 
-    const zonesData = zones.map(zone => ({
-      id: zone.id,
-      name: zone.name,
-      coordinates: zone.points,
-      color: zone.color
-    }));
+    const zonesData = zones.map(zone => {
+      const videoCoordinates = zone.points.map(point => calculateVideoCoordinates(point));
+      
+      return {
+        id: zone.id,
+        name: zone.name,
+        coordinates: videoCoordinates,
+        color: zone.color,
+        metadata: {
+          originalVideoWidth: videoElement?.videoWidth || videoDimensions.width,
+          originalVideoHeight: videoElement?.videoHeight || videoDimensions.height,
+          canvasWidth: videoDimensions.width,
+          canvasHeight: videoDimensions.height
+        }
+      };
+    });
 
     const jsonString = JSON.stringify(zonesData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
@@ -72,7 +113,7 @@ const ZoneManagement: React.FC<ZoneManagementProps> = ({
     link.click();
     
     URL.revokeObjectURL(url);
-    toast.success('Zones saved as JSON file');
+    toast.success('Zones saved with video coordinates');
   };
 
   return (

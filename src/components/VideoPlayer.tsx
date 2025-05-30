@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from 'react';
 
 interface VideoPlayerProps {
   videoUrl: string;
-  onVideoLoad: (width: number, height: number) => void;
+  onVideoLoad: (width: number, height: number, videoElement: HTMLVideoElement) => void;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, onVideoLoad }) => {
@@ -13,7 +13,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, onVideoLoad }) => {
     const video = videoRef.current;
     if (video) {
       const handleLoadedMetadata = () => {
-        onVideoLoad(video.videoWidth, video.videoHeight);
+        onVideoLoad(video.videoWidth, video.videoHeight, video);
       };
 
       video.addEventListener('loadedmetadata', handleLoadedMetadata);

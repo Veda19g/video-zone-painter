@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import VideoUpload from './VideoUpload';
@@ -16,6 +15,7 @@ const VideoZoneAnnotator = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
+  const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
 
   const handleVideoUpload = (file: File) => {
     setVideoFile(file);
@@ -24,9 +24,10 @@ const VideoZoneAnnotator = () => {
     toast.success('Video uploaded successfully!');
   };
 
-  const handleVideoLoad = (width: number, height: number) => {
+  const handleVideoLoad = (width: number, height: number, videoEl: HTMLVideoElement) => {
     console.log('Video loaded with dimensions:', width, height);
     setVideoDimensions({ width, height });
+    setVideoElement(videoEl);
   };
 
   const startDrawing = () => {
@@ -127,6 +128,8 @@ const VideoZoneAnnotator = () => {
               onStartDrawing={startDrawing}
               isDrawing={isDrawing}
               hasVideo={!!videoFile}
+              videoDimensions={videoDimensions}
+              videoElement={videoElement}
             />
           </div>
         </div>
