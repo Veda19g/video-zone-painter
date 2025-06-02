@@ -1,8 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import VideoUpload from './VideoUpload';
 import VideoPlayer from './VideoPlayer';
 import ZoneDrawingCanvas from './ZoneDrawingCanvas';
@@ -19,10 +16,6 @@ const VideoZoneAnnotator = () => {
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
-  
-  // Video display resolution inputs
-  const [displayWidth, setDisplayWidth] = useState<number>(1280);
-  const [displayHeight, setDisplayHeight] = useState<number | undefined>(undefined);
 
   const handleVideoUpload = (file: File) => {
     setVideoFile(file);
@@ -33,7 +26,6 @@ const VideoZoneAnnotator = () => {
 
   const handleVideoLoad = (width: number, height: number, videoEl: HTMLVideoElement) => {
     console.log('Video loaded with dimensions:', width, height);
-    console.log('Video will be displayed at:', displayWidth || 'auto width', 'x', displayHeight || 'auto height');
     setVideoDimensions({ width, height });
     setVideoElement(videoEl);
   };
@@ -97,41 +89,6 @@ const VideoZoneAnnotator = () => {
           </p>
         </div>
 
-        {/* Video Resolution Controls */}
-        <Card className="mb-6 p-4 bg-white shadow-sm">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <Label htmlFor="display-width" className="text-sm font-medium text-gray-700">
-                Display Width (px)
-              </Label>
-              <Input
-                id="display-width"
-                type="number"
-                value={displayWidth}
-                onChange={(e) => setDisplayWidth(Number(e.target.value) || 1280)}
-                placeholder="1280"
-                className="mt-1"
-              />
-            </div>
-            <div className="flex-1 min-w-[200px]">
-              <Label htmlFor="display-height" className="text-sm font-medium text-gray-700">
-                Display Height (px) - Optional
-              </Label>
-              <Input
-                id="display-height"
-                type="number"
-                value={displayHeight || ''}
-                onChange={(e) => setDisplayHeight(e.target.value ? Number(e.target.value) : undefined)}
-                placeholder="Auto (maintains aspect ratio)"
-                className="mt-1"
-              />
-            </div>
-            <div className="text-sm text-gray-500">
-              Leave height empty to maintain aspect ratio
-            </div>
-          </div>
-        </Card>
-
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3">
             <Card className="p-6 bg-white shadow-lg">
@@ -142,8 +99,6 @@ const VideoZoneAnnotator = () => {
                   <VideoPlayer
                     videoUrl={videoUrl}
                     onVideoLoad={handleVideoLoad}
-                    width={displayWidth}
-                    height={displayHeight}
                   />
                   {videoDimensions.width > 0 && videoDimensions.height > 0 && (
                     <ZoneDrawingCanvas
