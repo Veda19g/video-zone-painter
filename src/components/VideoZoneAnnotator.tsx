@@ -17,6 +17,10 @@ const VideoZoneAnnotator = () => {
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
 
+  // Set specific video display dimensions (optional)
+  const VIDEO_DISPLAY_WIDTH = 1280; // Set to desired width, or undefined for auto
+  const VIDEO_DISPLAY_HEIGHT = undefined; // Set to desired height, or undefined for auto
+
   const handleVideoUpload = (file: File) => {
     setVideoFile(file);
     const url = URL.createObjectURL(file);
@@ -26,6 +30,7 @@ const VideoZoneAnnotator = () => {
 
   const handleVideoLoad = (width: number, height: number, videoEl: HTMLVideoElement) => {
     console.log('Video loaded with dimensions:', width, height);
+    console.log('Video will be displayed at:', VIDEO_DISPLAY_WIDTH || 'auto width', 'x', VIDEO_DISPLAY_HEIGHT || 'auto height');
     setVideoDimensions({ width, height });
     setVideoElement(videoEl);
   };
@@ -99,6 +104,8 @@ const VideoZoneAnnotator = () => {
                   <VideoPlayer
                     videoUrl={videoUrl}
                     onVideoLoad={handleVideoLoad}
+                    width={VIDEO_DISPLAY_WIDTH}
+                    height={VIDEO_DISPLAY_HEIGHT}
                   />
                   {videoDimensions.width > 0 && videoDimensions.height > 0 && (
                     <ZoneDrawingCanvas
