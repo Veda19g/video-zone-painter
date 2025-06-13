@@ -15,35 +15,26 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   height 
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [displayDimensions, setDisplayDimensions] = useState({ width: 0, height: 0 });
+  const [displayDimensions, setDisplayDimensions] = useState({ width: 640, height: 360 });
 
   useEffect(() => {
     const video = videoRef.current;
     if (video) {
       const handleLoadedMetadata = () => {
-        let displayWidth = width || video.videoWidth;
-        let displayHeight = height;
+        // Always use 640x360 resolution
+        const fixedWidth = 640;
+        const fixedHeight = 360;
         
-        // If only width is specified, calculate height maintaining aspect ratio
-        if (width && !height) {
-          const aspectRatio = video.videoHeight / video.videoWidth;
-          displayHeight = width * aspectRatio;
-        }
-        
-        // If no dimensions specified, use video's natural dimensions
-        if (!width && !height) {
-          displayWidth = video.videoWidth;
-          displayHeight = video.videoHeight;
-        }
-        
-        setDisplayDimensions({ width: displayWidth, height: displayHeight });
-        onVideoLoad(displayWidth, displayHeight, video);
+        setDisplayDimensions({ width: fixedWidth, height: fixedHeight });
+        onVideoLoad(fixedWidth, fixedHeight, video);
       };
 
       const handleResize = () => {
-        if (video.videoWidth && video.videoHeight) {
-          handleLoadedMetadata();
-        }
+        // Always maintain 640x360 even on resize
+        const fixedWidth = 640;
+        const fixedHeight = 360;
+        setDisplayDimensions({ width: fixedWidth, height: fixedHeight });
+        onVideoLoad(fixedWidth, fixedHeight, video);
       };
 
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -54,14 +45,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         video.removeEventListener('resize', handleResize);
       };
     }
-  }, [onVideoLoad, width, height]);
+  }, [onVideoLoad]);
 
   const videoStyle = {
-    width: displayDimensions.width > 0 ? `${displayDimensions.width}px` : 'auto',
-    height: displayDimensions.height > 0 ? `${displayDimensions.height}px` : 'auto',
+    width: '640px',
+    height: '360px',
     display: 'block',
-    maxWidth: '100%',
-    maxHeight: '70vh'
+    objectFit: 'fill' as const
   };
 
   return (
