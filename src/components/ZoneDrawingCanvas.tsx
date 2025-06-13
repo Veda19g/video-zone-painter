@@ -29,68 +29,25 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
 }) => {
   const stageRef = useRef<Konva.Stage>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    const updateContainerDimensions = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerDimensions({ width: rect.width, height: rect.height });
-      }
-    };
-
-    updateContainerDimensions();
-    window.addEventListener('resize', updateContainerDimensions);
-    
-    // Use MutationObserver to detect when video dimensions change
-    const observer = new MutationObserver(updateContainerDimensions);
-    if (containerRef.current) {
-      observer.observe(containerRef.current, { 
-        attributes: true, 
-        childList: true, 
-        subtree: true 
-      });
-    }
-
-    return () => {
-      window.removeEventListener('resize', updateContainerDimensions);
-      observer.disconnect();
-    };
-  }, []);
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (!isDrawing) return;
 
     const pos = e.target.getStage()?.getPointerPosition();
     if (pos) {
-      // Calculate the actual position relative to the video dimensions
-      const scaleX = width / containerDimensions.width;
-      const scaleY = height / containerDimensions.height;
+      console.log('Click position on canvas:', pos);
+      console.log('Canvas dimensions:', { width, height });
       
-      const actualPos = {
-        x: pos.x * scaleX,
-        y: pos.y * scaleY
-      };
-      
-      console.log('Adding point at video coordinates:', actualPos);
-      onPointAdd(actualPos);
+      // Since we're using fixed 640x360 dimensions, use the position directly
+      onPointAdd(pos);
     }
   };
 
   const handlePointDrag = (zoneId: string, pointIndex: number, newPos: Point) => {
     const zone = zones.find(z => z.id === zoneId);
     if (zone) {
-      // Scale the dragged position to video coordinates
-      const scaleX = width / containerDimensions.width;
-      const scaleY = height / containerDimensions.height;
-      
-      const actualPos = {
-        x: newPos.x * scaleX,
-        y: newPos.y * scaleY
-      };
-      
       const newPoints = [...zone.points];
-      newPoints[pointIndex] = actualPos;
+      newPoints[pointIndex] = newPos;
       onZoneUpdate(zoneId, { points: newPoints });
     }
   };
@@ -104,16 +61,6 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
     };
   };
 
-  const scalePointsToCanvas = (points: Point[]): Point[] => {
-    const scaleX = containerDimensions.width / width;
-    const scaleY = containerDimensions.height / height;
-    
-    return points.map(point => ({
-      x: point.x * scaleX,
-      y: point.y * scaleY
-    }));
-  };
-
   const renderZone = (zone: Zone) => {
     const isSelected = selectedZoneId === zone.id;
     const opacity = isSelected ? 0.4 : 0.2;
@@ -121,10 +68,8 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
 
     if (zone.points.length < 3) return null;
 
-    // Scale zone points to match current canvas dimensions
-    const scaledPoints = scalePointsToCanvas(zone.points);
-    const points = scaledPoints.flatMap(p => [p.x, p.y]);
-    const center = calculateZoneCenter(scaledPoints);
+    const points = zone.points.flatMap(p => [p.x, p.y]);
+    const center = calculateZoneCenter(zone.points);
     
     return (
       <Group key={zone.id}>
@@ -151,7 +96,7 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
           offsetX={zone.name.length * 4}
           offsetY={7}
         />
-        {isSelected && scaledPoints.map((point, index) => (
+        {isSelected && zone.points.map((point, index) => (
           <Circle
             key={`${zone.id}-point-${index}`}
             x={point.x}
@@ -174,11 +119,9 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
   const renderCurrentPoints = () => {
     if (!isDrawing || currentPoints.length === 0) return null;
 
-    const scaledPoints = scalePointsToCanvas(currentPoints);
-
     return (
       <Group>
-        {scaledPoints.map((point, index) => (
+        {currentPoints.map((point, index) => (
           <Circle
             key={`current-${index}`}
             x={point.x}
@@ -189,9 +132,9 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
             strokeWidth={2}
           />
         ))}
-        {scaledPoints.length > 1 && (
+        {currentPoints.length > 1 && (
           <Line
-            points={scaledPoints.flatMap(p => [p.x, p.y])}
+            points={currentPoints.flatMap(p => [p.x, p.y])}
             stroke="#3B82F6"
             strokeWidth={2}
             dash={[5, 5]}
@@ -201,7 +144,7 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
     );
   };
 
-  if (width === 0 || height === 0 || containerDimensions.width === 0) return null;
+  if (width === 0 || height === 0) return null;
 
   return (
     <div 
@@ -209,14 +152,16 @@ const ZoneDrawingCanvas: React.FC<ZoneDrawingCanvasProps> = ({
       className="absolute inset-0"
       style={{ 
         cursor: isDrawing ? 'crosshair' : 'default',
-        pointerEvents: isDrawing ? 'auto' : 'none',
-        zIndex: 10
+        pointerEvents: 'auto',
+        zIndex: 10,
+        width: '640px',
+        height: '360px'
       }}
     >
       <Stage
         ref={stageRef}
-        width={containerDimensions.width}
-        height={containerDimensions.height}
+        width={640}
+        height={360}
         onClick={handleStageClick}
       >
         <Layer>
