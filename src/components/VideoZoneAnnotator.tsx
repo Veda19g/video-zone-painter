@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import VideoUpload from './VideoUpload';
@@ -7,15 +8,31 @@ import ZoneManagement from './ZoneManagement';
 import { Zone, Point } from '@/types/zone';
 import { toast } from 'sonner';
 
-const VideoZoneAnnotator = () => {
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string>('');
+interface VideoZoneAnnotatorProps {
+  videoFile?: File;
+  videoUrl?: string;
+}
+
+const VideoZoneAnnotator: React.FC<VideoZoneAnnotatorProps> = ({ 
+  videoFile: propVideoFile, 
+  videoUrl: propVideoUrl 
+}) => {
+  const [videoFile, setVideoFile] = useState<File | null>(propVideoFile || null);
+  const [videoUrl, setVideoUrl] = useState<string>(propVideoUrl || '');
   const [zones, setZones] = useState<Zone[]>([]);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentPoints, setCurrentPoints] = useState<Point[]>([]);
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
+
+  // Update video when props change
+  useEffect(() => {
+    if (propVideoFile && propVideoUrl) {
+      setVideoFile(propVideoFile);
+      setVideoUrl(propVideoUrl);
+    }
+  }, [propVideoFile, propVideoUrl]);
 
   const handleVideoUpload = (file: File) => {
     setVideoFile(file);
@@ -80,14 +97,16 @@ const VideoZoneAnnotator = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Video Zone Annotator
-          </h1>
-          <p className="text-gray-600">
-            Upload a video and draw quadrilateral zones for analysis
-          </p>
-        </div>
+        {!propVideoFile && (
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Video Zone Annotator
+            </h1>
+            <p className="text-gray-600">
+              Upload a video and draw quadrilateral zones for analysis
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           <div className="xl:col-span-3">
